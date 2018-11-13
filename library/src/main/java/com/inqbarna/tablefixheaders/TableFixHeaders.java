@@ -12,6 +12,7 @@ import android.database.DataSetObserver;
 import android.graphics.Canvas;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -19,11 +20,12 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Scroller;
+import android.widget.TextView;
 
 /**
  * This view shows a table which can scroll in both directions. Also still
  * leaves the headers fixed.
- * 
+ *
  * @author Brais Gabín (InQBarna)
  */
 public class TableFixHeaders extends ViewGroup {
@@ -55,8 +57,8 @@ public class TableFixHeaders extends ViewGroup {
 	private TableAdapterDataSetObserver tableAdapterDataSetObserver;
 	private boolean needRelayout;
 
-	private final ImageView[] shadows;
-	private final int shadowSize;
+//	private final ImageView[] shadows;
+//	private final int shadowSize;
 
 	private final int minimumVelocity;
 	private final int maximumVelocity;
@@ -69,10 +71,9 @@ public class TableFixHeaders extends ViewGroup {
 
 	/**
 	 * Simple constructor to use when creating a view from code.
-	 * 
-	 * @param context
-	 *            The Context the view is running in, through which it can
-	 *            access the current theme, resources, etc.
+	 *
+	 * @param context The Context the view is running in, through which it can
+	 *                access the current theme, resources, etc.
 	 */
 	public TableFixHeaders(Context context) {
 		this(context, null);
@@ -84,15 +85,13 @@ public class TableFixHeaders extends ViewGroup {
 	 * that were specified in the XML file. This version uses a default style of
 	 * 0, so the only attribute values applied are those in the Context's Theme
 	 * and the given AttributeSet.
-	 *
+	 * <p>
 	 * The method onFinishInflate() will be called after all children have been
 	 * added.
-	 * 
-	 * @param context
-	 *            The Context the view is running in, through which it can
-	 *            access the current theme, resources, etc.
-	 * @param attrs
-	 *            The attributes of the XML tag that is inflating the view.
+	 *
+	 * @param context The Context the view is running in, through which it can
+	 *                access the current theme, resources, etc.
+	 * @param attrs   The attributes of the XML tag that is inflating the view.
 	 */
 	public TableFixHeaders(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -104,17 +103,17 @@ public class TableFixHeaders extends ViewGroup {
 
 		this.needRelayout = true;
 
-		this.shadows = new ImageView[4];
-		this.shadows[0] = new ImageView(context);
-		this.shadows[0].setImageResource(R.drawable.shadow_left);
-		this.shadows[1] = new ImageView(context);
-		this.shadows[1].setImageResource(R.drawable.shadow_top);
-		this.shadows[2] = new ImageView(context);
-		this.shadows[2].setImageResource(R.drawable.shadow_right);
-		this.shadows[3] = new ImageView(context);
-		this.shadows[3].setImageResource(R.drawable.shadow_bottom);
+//		this.shadows = new ImageView[4];
+//		this.shadows[0] = new ImageView(context);
+//		this.shadows[0].setImageResource(R.drawable.shadow_left);
+//		this.shadows[1] = new ImageView(context);
+//		this.shadows[1].setImageResource(R.drawable.shadow_top);
+//		this.shadows[2] = new ImageView(context);
+//		this.shadows[2].setImageResource(R.drawable.shadow_right);
+//		this.shadows[3] = new ImageView(context);
+//		this.shadows[3].setImageResource(R.drawable.shadow_bottom);
 
-		this.shadowSize = getResources().getDimensionPixelSize(R.dimen.shadow_size);
+//		this.shadowSize = getResources().getDimensionPixelSize(R.dimen.shadow_size);
 
 		this.flinger = new Flinger(context);
 		final ViewConfiguration configuration = ViewConfiguration.get(context);
@@ -127,7 +126,7 @@ public class TableFixHeaders extends ViewGroup {
 
 	/**
 	 * Returns the adapter currently associated with this widget.
-	 * 
+	 *
 	 * @return The adapter used to provide this view's content.
 	 */
 	public TableAdapter getAdapter() {
@@ -136,11 +135,10 @@ public class TableFixHeaders extends ViewGroup {
 
 	/**
 	 * Sets the data behind this TableFixHeaders.
-	 * 
-	 * @param adapter
-	 *            The TableAdapter which is responsible for maintaining the data
-	 *            backing this list and for producing a view to represent an
-	 *            item in that data set.
+	 *
+	 * @param adapter The TableAdapter which is responsible for maintaining the data
+	 *                backing this list and for producing a view to represent an
+	 *                item in that data set.
 	 */
 	public void setAdapter(TableAdapter adapter) {
 		if (this.adapter != null) {
@@ -174,14 +172,18 @@ public class TableFixHeaders extends ViewGroup {
 			case MotionEvent.ACTION_MOVE: {
 				int x2 = Math.abs(currentX - (int) event.getRawX());
 				int y2 = Math.abs(currentY - (int) event.getRawY());
+
 				if (x2 > touchSlop || y2 > touchSlop) {
 					intercept = true;
+
 				}
 				break;
 			}
 		}
 		return intercept;
 	}
+
+	int i = 0;
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -206,8 +208,32 @@ public class TableFixHeaders extends ViewGroup {
 				final int diffY = currentY - y2;
 				currentX = x2;
 				currentY = y2;
+				int actualScrollX = getActualScrollX();
+				int maxScrollX = getMaxScrollX();
 
-				scrollBy(diffX, diffY);
+				if (actualScrollX == maxScrollX && diffX > 0) {
+					adapter.onRight(event);
+					return false;
+				}
+				if (actualScrollX == 0 && diffX < 0) {
+					adapter.onLeft(event);
+					return false;
+				}
+
+				if (Math.abs(diffX) > Math.abs(1.3 * diffY)) {
+					scrollBy(diffX, 0);
+					Log.i("bbb横向", "" + i);
+				} else if (Math.abs(diffY) > Math.abs(1.3 * diffX)) {
+					scrollBy(0, diffY);
+					Log.i("bbb纵向", "" + i);
+
+				} else {
+					scrollBy(diffX, diffY);
+					Log.i("bbb双向", "" + i);
+
+				}
+				Log.i("aaaadiffY", i + "diffX" + diffX + ";diffY" + diffY);
+
 				break;
 			}
 			case MotionEvent.ACTION_UP: {
@@ -217,7 +243,13 @@ public class TableFixHeaders extends ViewGroup {
 				int velocityY = (int) velocityTracker.getYVelocity();
 
 				if (Math.abs(velocityX) > minimumVelocity || Math.abs(velocityY) > minimumVelocity) {
-					flinger.start(getActualScrollX(), getActualScrollY(), velocityX, velocityY, getMaxScrollX(), getMaxScrollY());
+					if (Math.abs(velocityX) > Math.abs(1.3 * velocityY)) {
+						flinger.start(getActualScrollX(), getActualScrollY(), velocityX, 0, getMaxScrollX(), getMaxScrollY());
+					} else if (Math.abs(velocityY) > Math.abs(1.3 * velocityX)) {
+						flinger.start(getActualScrollX(), getActualScrollY(), 0, velocityY, getMaxScrollX(), getMaxScrollY());
+					} else {
+						flinger.start(getActualScrollX(), getActualScrollY(), velocityX, velocityY, getMaxScrollX(), getMaxScrollY());
+					}
 				} else {
 					if (this.velocityTracker != null) { // If the velocity less than threshold
 						this.velocityTracker.recycle(); // recycle the tracker
@@ -330,9 +362,9 @@ public class TableFixHeaders extends ViewGroup {
 
 		repositionViews();
 
-		shadowsVisibility();
+//		shadowsVisibility();
 
-		awakenScrollBars();
+//		awakenScrollBars();
 	}
 
 	/*
@@ -344,7 +376,7 @@ public class TableFixHeaders extends ViewGroup {
 		final float contentSize = sumArray(widths) - widths[0];
 		final float percentageOfVisibleView = tableSize / contentSize;
 
-	    return Math.round(percentageOfVisibleView * tableSize);
+		return Math.round(percentageOfVisibleView * tableSize);
 	}
 
 	/*
@@ -356,7 +388,7 @@ public class TableFixHeaders extends ViewGroup {
 		final float percentageOfViewScrolled = getActualScrollX() / maxScrollX;
 		final int maxHorizontalScrollOffset = width - widths[0] - computeHorizontalScrollExtent();
 
-	    return widths[0] + Math.round(percentageOfViewScrolled * maxHorizontalScrollOffset);
+		return widths[0] + Math.round(percentageOfViewScrolled * maxHorizontalScrollOffset);
 	}
 
 	/*
@@ -364,7 +396,7 @@ public class TableFixHeaders extends ViewGroup {
 	 */
 	@Override
 	protected int computeHorizontalScrollRange() {
-	    return width;
+		return width;
 	}
 
 	/*
@@ -376,7 +408,7 @@ public class TableFixHeaders extends ViewGroup {
 		final float contentSize = sumArray(heights) - heights[0];
 		final float percentageOfVisibleView = tableSize / contentSize;
 
-	    return Math.round(percentageOfVisibleView * tableSize);
+		return Math.round(percentageOfVisibleView * tableSize);
 	}
 
 	/*
@@ -388,7 +420,12 @@ public class TableFixHeaders extends ViewGroup {
 		final float percentageOfViewScrolled = getActualScrollY() / maxScrollY;
 		final int maxHorizontalScrollOffset = height - heights[0] - computeVerticalScrollExtent();
 
-	    return heights[0] + Math.round(percentageOfViewScrolled * maxHorizontalScrollOffset);
+		//	    return heights[0] + Math.round(percentageOfViewScrolled * maxHorizontalScrollOffset);
+		int verticalScrollOffset = heights[0] + Math.round(percentageOfViewScrolled * maxHorizontalScrollOffset);
+		if (verticalScrollOffset == heights[0]) {
+			verticalScrollOffset = 0;
+		}
+		return verticalScrollOffset;
 	}
 
 	/*
@@ -396,7 +433,7 @@ public class TableFixHeaders extends ViewGroup {
 	 */
 	@Override
 	protected int computeVerticalScrollRange() {
-	    return height;
+		return height;
 	}
 
 	public int getActualScrollX() {
@@ -638,10 +675,10 @@ public class TableFixHeaders extends ViewGroup {
 
 				right = Math.min(width, sumArray(widths));
 				bottom = Math.min(height, sumArray(heights));
-				addShadow(shadows[0], widths[0], 0, widths[0] + shadowSize, bottom);
-				addShadow(shadows[1], 0, heights[0], right, heights[0] + shadowSize);
-				addShadow(shadows[2], right - shadowSize, 0, right, bottom);
-				addShadow(shadows[3], 0, bottom - shadowSize, right, bottom);
+//				addShadow(shadows[0], widths[0], 0, widths[0] + shadowSize, bottom);
+//				addShadow(shadows[1], 0, heights[0], right, heights[0] + shadowSize);
+//				addShadow(shadows[2], right - shadowSize, 0, right, bottom);
+//				addShadow(shadows[3], 0, bottom - shadowSize, right, bottom);
 
 				headView = makeAndSetup(-1, -1, 0, 0, widths[0], heights[0]);
 
@@ -679,7 +716,7 @@ public class TableFixHeaders extends ViewGroup {
 					top = bottom;
 				}
 
-				shadowsVisibility();
+//				shadowsVisibility();
 			}
 		}
 	}
@@ -726,23 +763,23 @@ public class TableFixHeaders extends ViewGroup {
 				firstCell--;
 			}
 		}
-		return new int[] { scroll, firstCell };
+		return new int[]{scroll, firstCell};
 	}
 
-	private void shadowsVisibility() {
-		final int actualScrollX = getActualScrollX();
-		final int actualScrollY = getActualScrollY();
-		final int[] remainPixels = {
-				actualScrollX,
-				actualScrollY,
-				getMaxScrollX() - actualScrollX,
-				getMaxScrollY() - actualScrollY,
-		};
-
-		for (int i = 0; i < shadows.length; i++) {
-			setAlpha(shadows[i], Math.min(remainPixels[i] / (float) shadowSize, 1));
-		}
-	}
+//	private void shadowsVisibility() {
+//		final int actualScrollX = getActualScrollX();
+//		final int actualScrollY = getActualScrollY();
+//		final int[] remainPixels = {
+//				actualScrollX,
+//				actualScrollY,
+//				getMaxScrollX() - actualScrollX,
+//				getMaxScrollY() - actualScrollY,
+//		};
+//
+//		for (int i = 0; i < shadows.length; i++) {
+//			setAlpha(shadows[i], Math.min(remainPixels[i] / (float) shadowSize, 1));
+//		}
+//	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@SuppressWarnings("deprecation")
@@ -812,6 +849,7 @@ public class TableFixHeaders extends ViewGroup {
 		view.setTag(R.id.tag_row, row);
 		view.setTag(R.id.tag_column, column);
 		view.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY));
+
 		addTableView(view, row, column);
 		return view;
 	}
@@ -825,6 +863,7 @@ public class TableFixHeaders extends ViewGroup {
 			addView(view, 0);
 		}
 	}
+
 
 	private class TableAdapterDataSetObserver extends DataSetObserver {
 

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.MotionEvent;
 
 import com.inqbarna.tablefixheaders.TableFixHeaders;
 import com.inqbarna.tablefixheaders.samples.adapters.SampleTableAdapter;
@@ -86,6 +87,16 @@ public class StyleTable extends Activity {
 		@Override
 		public int getViewTypeCount() {
 			return 2;
+		}
+
+		@Override
+		public void onLeft(MotionEvent event) {
+
+		}
+
+		@Override
+		public void onRight(MotionEvent event) {
+
 		}
 	}
 }

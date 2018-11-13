@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -78,5 +79,15 @@ public class MatrixTableAdapter<T> extends BaseTableAdapter {
 	@Override
 	public int getViewTypeCount() {
 		return 1;
+	}
+
+	@Override
+	public void onLeft(MotionEvent event) {
+
+	}
+
+	@Override
+	public void onRight(MotionEvent event) {
+
 	}
 }

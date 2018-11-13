@@ -9,6 +9,7 @@ import com.inqbarna.tablefixheaders.adapters.BaseTableAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -253,6 +254,16 @@ public class FamilyTable extends Activity {
 		@Override
 		public int getViewTypeCount() {
 			return 5;
+		}
+
+		@Override
+		public void onLeft(MotionEvent event) {
+
+		}
+
+		@Override
+		public void onRight(MotionEvent event) {
+
 		}
 	}
 }
